@@ -1,0 +1,40 @@
+base_images:
+  base:
+    name: "4.2"
+    namespace: ocp
+    tag: base
+build_root:
+  image_stream_tag:
+    cluster: https://api.ci.openshift.org
+    name: fedora
+    namespace: openshift
+    tag: '29'
+images:
+- dockerfile_path: base.Dockerfile
+  from: base
+  to: omps-base
+- dockerfile_path: integration.Dockerfile
+  from: omps-base
+  to: omps-integration
+resources:
+  '*':
+    limits:
+      memory: 2Gi
+    requests:
+      cpu: 100m
+      memory: 100Mi
+tests:
+- as: py37-integration-courier-released
+  commands: TOXENV="py37-courier_released" ./run_integration_tests.sh --docker-config /tmp/integration-secret/config.json
+  container:
+    from: omps-integration
+  secret:
+    name: registry-push-credentials-quay.io-operator-manifest
+    mount_path: /tmp/integration-secret
+- as: py37-integration-courier-master
+  commands: TOXENV="py37-courier_master" ./run_integration_tests.sh --docker-config /tmp/integration-secret/config.json
+  container:
+    from: omps-integration
+  secret:
+    name: registry-push-credentials-quay.io-operator-manifest
+    mount_path: /tmp/integration-secret
