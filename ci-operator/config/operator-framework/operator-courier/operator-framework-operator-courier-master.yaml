@@ -11,6 +11,9 @@ images:
 - dockerfile_path: tests/integration/dockerfiles/integration.Dockerfile
   from: root
   to: integration
+- dockerfile_path: tests/integration/dockerfiles/omps-integration.Dockerfile
+  from: root
+  to: omps-integration
 resources:
   '*':
     limits:
@@ -23,6 +26,13 @@ tests:
   commands: . /tmp/secret/quay-env.txt && tox -e integration
   container:
     from: integration
+  secret:
+    name: operator-manifests-test-credentials
+    mount_path: /tmp/secret
+- as: omps-integration
+  commands: cp -f /tmp/secret/* . && ./integration.sh
+  container:
+    from: omps-integration
   secret:
     name: operator-manifests-test-credentials
     mount_path: /tmp/secret
